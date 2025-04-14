@@ -50,4 +50,4 @@ df["predicted_emissions (kg co2)"] = predictions
 
 # Save predictions
 df.to_csv(PREDICTION_FILE, index=False)
-print(f"✅ Predictions saved to: {PREDICTION_FILE}")
+print(f" Predictions saved to: {PREDICTION_FILE}")
