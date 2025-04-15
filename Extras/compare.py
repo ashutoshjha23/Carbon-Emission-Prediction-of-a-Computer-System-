@@ -7,12 +7,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-# === Paths ===
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DATA_FILE = os.path.join(BASE_DIR, "data", "processed_system_data.csv")
 MODEL_DIR = os.path.join(BASE_DIR, "models")
 
-# === Load Data ===
 df = pd.read_csv(DATA_FILE)
 df.columns = df.columns.str.strip().str.lower()
 df = df.drop(columns=[col for col in ["battery percentage", "power plugged", "system uptime (hours)"] if col in df.columns], errors="ignore")
@@ -29,7 +27,6 @@ X_scaled = scaler.fit_transform(X)
 
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
-# === Evaluation Function ===
 def evaluate(y_true, y_pred):
     return {
         "MAE": mean_absolute_error(y_true, y_pred),
@@ -37,7 +34,6 @@ def evaluate(y_true, y_pred):
         "R2": r2_score(y_true, y_pred)
     }
 
-# === Model Paths ===
 model_files = {
     "XGBoost": "carbon_footprint_model.pkl",
     "Random Forest": "random_forest_model.pkl",
@@ -59,14 +55,12 @@ for model_name, file_name in model_files.items():
     else:
         print(f"❌ {model_name} model not found at {model_path}")
 
-# === Print Results ===
 for name, metrics in results.items():
     print(f"\n{name} Performance:")
     print(f"  MAE : {metrics['MAE']:.2f} kg CO2")
     print(f"  RMSE: {metrics['RMSE']:.2f} kg CO2")
     print(f"  R²  : {metrics['R2']:.4f}")
 
-# === Plot Results ===
 labels = list(results.keys())
 mae_vals = [results[m]["MAE"] for m in labels]
 rmse_vals = [results[m]["RMSE"] for m in labels]
@@ -90,7 +84,6 @@ ax.grid(True, axis='y')
 plt.tight_layout()
 plt.show()
 
-# === Line Plot for Model Performance ===
 fig, ax = plt.subplots(figsize=(10, 6))
 
 ax.plot(labels, mae_vals, marker='o', label='MAE', color='coral')

@@ -1,107 +1,50 @@
 import os
-import pandas as pd
 import joblib
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-# === Paths ===
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DATA_FILE = os.path.join(BASE_DIR, "data", "processed_system_data.csv")
-MODEL_DIR = os.path.join(BASE_DIR, "models")
+SCALER_FILE = os.path.join(BASE_DIR, "models", "scaler.pkl")
+MODEL_FILE = os.path.join(BASE_DIR, "models", "carbon_footprint_model.pkl")
 
-# === Load Data ===
 df = pd.read_csv(DATA_FILE)
+
 df.columns = df.columns.str.strip().str.lower()
-df = df.drop(columns=[col for col in ["battery percentage", "power plugged", "system uptime (hours)"] if col in df.columns], errors="ignore")
 
-X = df.drop(columns=["total estimated emissions"])
-y = df["total estimated emissions"]
+drop_columns = ["battery percentage", "power plugged", "system uptime (hours)"]
+df = df.drop(columns=[col for col in drop_columns if col in df.columns], errors="ignore")
 
-X = X.apply(pd.to_numeric, errors="coerce")
-X = X.dropna(axis=1, thresh=int(0.5 * len(X)))
-X.fillna(X.median(), inplace=True)
+if "total estimated emissions" in df.columns:
+    X = df.drop(columns=["total estimated emissions"])
+    y = df["total estimated emissions"]
+else:
+    raise KeyError("❌ Column 'total estimated emissions' not found in dataset.")
 
-scaler = MinMaxScaler()
-X_scaled = scaler.fit_transform(X)
+scaler = joblib.load(SCALER_FILE)
+model = joblib.load(MODEL_FILE)
+
+print("Features used for training:")
+print(scaler.feature_names_in_)
+
+scaler_features = scaler.feature_names_in_
+X = X.reindex(columns=scaler_features, fill_value=0)
+
+X_scaled = scaler.transform(X)
 
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
-# === Evaluation Function ===
-def evaluate(y_true, y_pred):
-    return {
-        "MAE": mean_absolute_error(y_true, y_pred),
-        "RMSE": np.sqrt(mean_squared_error(y_true, y_pred)),
-        "R2": r2_score(y_true, y_pred)
-    }
 
-# === Model Paths ===
-model_files = {
-    "XGBoost": "carbon_footprint_model.pkl",
-    "Random Forest": "random_forest_model.pkl",
-    "KNN": "knn_model.pkl",
-    "SVR": "svr_model.pkl",
-    "Decision Tree": "decision_tree_model.pkl"
-}
+y_pred = model.predict(X_test)
 
-# === Load Models & Evaluate ===
-results = {}
-
-for model_name, file_name in model_files.items():
-    model_path = os.path.join(MODEL_DIR, file_name)
-    if os.path.exists(model_path):
-        model = joblib.load(model_path)
-        print(f"Loaded {model_name} model")
-        y_pred = model.predict(X_test)
-        results[model_name] = evaluate(y_test, y_pred)
-    else:
-        print(f"❌ {model_name} model not found at {model_path}")
-
-# === Print Results ===
-for name, metrics in results.items():
-    print(f"\n{name} Performance:")
-    print(f"  MAE : {metrics['MAE']:.2f} kg CO2")
-    print(f"  RMSE: {metrics['RMSE']:.2f} kg CO2")
-    print(f"  R²  : {metrics['R2']:.4f}")
-
-# === Plot Results ===
-labels = list(results.keys())
-mae_vals = [results[m]["MAE"] for m in labels]
-rmse_vals = [results[m]["RMSE"] for m in labels]
-r2_vals = [results[m]["R2"] for m in labels]
-
-x = np.arange(len(labels))
-width = 0.25
-
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.bar(x - width, mae_vals, width, label='MAE', color='coral')
-ax.bar(x, rmse_vals, width, label='RMSE', color='deepskyblue')
-ax.bar(x + width, r2_vals, width, label='R² Score', color='limegreen')
-
-ax.set_ylabel('Error / Score')
-ax.set_title('Model Comparison')
-ax.set_xticks(x)
-ax.set_xticklabels(labels)
-ax.legend()
-ax.grid(True, axis='y')
-
-plt.tight_layout()
-plt.show()
-
-# === Line Plot for Model Performance ===
-fig, ax = plt.subplots(figsize=(10, 6))
-
-ax.plot(labels, mae_vals, marker='o', label='MAE', color='coral')
-ax.plot(labels, rmse_vals, marker='s', label='RMSE', color='deepskyblue')
-ax.plot(labels, r2_vals, marker='^', label='R² Score', color='limegreen')
-
-ax.set_title('Model Performance Comparison (Line Plot)')
-ax.set_ylabel('Error / Score')
-ax.set_xlabel('Models')
-ax.grid(True)
-ax.legend()
-plt.xticks(rotation=45)
+plt.figure(figsize=(8, 6))
+plt.scatter(y_test, y_pred, alpha=0.6, color='green')
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', linewidth=2)
+plt.xlabel("Actual Emissions (kg CO₂)")
+plt.ylabel("Predicted Emissions (kg CO₂)")
+plt.title("Actual vs Predicted Emissions")
+plt.grid(True)
 plt.tight_layout()
 plt.show()
