@@ -33,18 +33,15 @@ X.fillna(X.median(), inplace=True)
 scaler = MinMaxScaler()
 X_scaled = scaler.fit_transform(X)
 
-# Save scaler
 os.makedirs(MODEL_DIR, exist_ok=True)
 joblib.dump(scaler, SCALER_FILE)
 
-# Split data
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
 # Train KNN model
 knn_model = KNeighborsRegressor(n_neighbors=5)
 knn_model.fit(X_train, y_train)
 
-# Save the model
 joblib.dump(knn_model, KNN_MODEL_FILE)
 print(f" KNN model trained and saved to {KNN_MODEL_FILE}")
 
@@ -54,7 +51,6 @@ mae_knn = mean_absolute_error(y_test, y_pred_knn)
 rmse_knn = np.sqrt(mean_squared_error(y_test, y_pred_knn))
 r2_knn = r2_score(y_test, y_pred_knn)
 
-# Print performance
 print("\nK-Nearest Neighbors Performance:")
 print(f"  MAE : {mae_knn:.2f} kg CO2")
 print(f"  RMSE: {rmse_knn:.2f} kg CO2")

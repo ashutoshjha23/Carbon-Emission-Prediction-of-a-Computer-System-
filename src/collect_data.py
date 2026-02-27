@@ -5,21 +5,19 @@ import pandas as pd
 import time
 import requests
 
-# ✅ Define Data Storage Path
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
 DATA_FILE = os.path.join(DATA_DIR, "system_data.csv")
 
-# ✅ Ensure the 'data' directory exists
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# ✅ Get Real-Time CPU Power Consumption
+#  Get Real-Time CPU Power Consumption
 def get_cpu_power():
     cpu_usage = psutil.cpu_percent(interval=1)
     base_power = 5   # Idle CPU power in watts
     max_power = 35   # Max CPU power in watts
     return base_power + (cpu_usage / 100) * (max_power - base_power)
 
-# ✅ Get Real-Time GPU Power Consumption (NVIDIA Only)
+#  Get Real-Time GPU Power Consumption (NVIDIA Only)
 def get_gpu_power():
     try:
         output = subprocess.check_output(
@@ -58,7 +56,7 @@ def get_grid_carbon_intensity():
 #  Function to Collect System Data
 def collect_data(runs=10, interval=10):
     for i in range(runs):
-        print(f"🔄 Collecting data... ({i+1}/{runs})")
+        print(f" Collecting data... ({i+1}/{runs})")
         
         cpu_power = get_cpu_power()
         gpu_power = get_gpu_power()
@@ -97,4 +95,4 @@ def collect_data(runs=10, interval=10):
 
 #  Run Data Collection
 if __name__ == "__main__":
-    collect_data(runs=550, interval=2)
+    collect_data(runs=5, interval=2)

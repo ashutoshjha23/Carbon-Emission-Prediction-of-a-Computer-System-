@@ -15,7 +15,7 @@ MODEL_FILE = os.path.join(MODEL_DIR, "carbon_footprint_model.pkl")
 SCALER_FILE = os.path.join(MODEL_DIR, "scaler.pkl")
 
 if not os.path.exists(DATA_FILE):
-    raise FileNotFoundError(f"❌ Processed dataset not found: {DATA_FILE}. Run preprocess.py first.")
+    raise FileNotFoundError(f" Processed dataset not found: {DATA_FILE}. Run preprocess.py first.")
 
 # Load data
 df = pd.read_csv(DATA_FILE)
@@ -25,11 +25,11 @@ print(f" Data Shape: {df.shape}")  # Debugging dataset size
 df.columns = df.columns.str.strip().str.lower()
 
 # Debug: print columns
-print("✅ Cleaned Columns:", df.columns.tolist())
+print(" Cleaned Columns:", df.columns.tolist())
 
 # Check for required target column
 if "total estimated emissions" not in df.columns:
-    raise KeyError(f"❌ Column 'total estimated emissions' not found. Available columns: {df.columns.tolist()}")
+    raise KeyError(f" Column 'total estimated emissions' not found. Available columns: {df.columns.tolist()}")
 
 # Drop irrelevant columns if they exist
 drop_columns = ["battery percentage", "power plugged", "system uptime (hours)"]
@@ -46,7 +46,7 @@ X.fillna(X.median(), inplace=True)
 
 # Final NaN check
 if X.isnull().sum().sum() > 0:
-    raise ValueError("❌ NaN values still exist after preprocessing. Check data!")
+    raise ValueError(" NaN values still exist after preprocessing. Check data!")
 
 # Scale features
 scaler = MinMaxScaler()

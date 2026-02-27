@@ -12,7 +12,7 @@ PREDICTION_FILE = os.path.join(BASE_DIR, "data", "predicted_carbon_footprint.csv
 
 # Load model and scaler
 if not os.path.exists(MODEL_FILE) or not os.path.exists(SCALER_FILE):
-    raise FileNotFoundError("❌ Model or scaler not found. Train the model first.")
+    raise FileNotFoundError(" Model or scaler not found. Train the model first.")
 model = joblib.load(MODEL_FILE)
 scaler = joblib.load(SCALER_FILE)
 
